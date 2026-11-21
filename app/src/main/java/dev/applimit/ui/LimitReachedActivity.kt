@@ -6,7 +6,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,12 +28,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import dev.applimit.R
+import dev.applimit.data.appIcon
 import dev.applimit.data.appLabel
 import dev.applimit.data.limitStore
 import kotlinx.coroutines.flow.first
@@ -115,6 +120,8 @@ private fun LimitReachedScreen(
     val context = LocalContext.current
     var oneMoreUsed by remember(pkg) { mutableStateOf(true) }
     LaunchedEffect(pkg) { oneMoreUsed = context.limitStore().snapshot().day(pkg).oneMoreUsed }
+    val iconPx = with(LocalDensity.current) { 72.dp.roundToPx() }
+    val icon = remember(pkg) { context.appIcon(pkg, iconPx)?.asImageBitmap() }
 
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
@@ -122,6 +129,8 @@ private fun LimitReachedScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            if (icon != null) Image(icon, contentDescription = null, Modifier.size(72.dp))
+            else AppBadge(72.dp)
             Text(
                 stringResource(R.string.limit_reached_title),
                 style = MaterialTheme.typography.headlineMedium,

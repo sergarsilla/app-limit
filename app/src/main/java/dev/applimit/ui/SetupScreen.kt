@@ -39,6 +39,7 @@ fun SetupScreen(serviceEnabled: Boolean, usageAccess: Boolean) {
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            AppBadge(72.dp)
             Text(stringResource(R.string.setup_title), style = MaterialTheme.typography.headlineMedium)
             Text(stringResource(R.string.setup_intro), style = MaterialTheme.typography.bodyLarge)
 
