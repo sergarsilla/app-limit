@@ -5,7 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import dev.applimit.R
-import dev.applimit.ui.appLabel
+import dev.applimit.data.appLabel
 
 object Notifications {
 

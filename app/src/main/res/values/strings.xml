@@ -2,6 +2,29 @@
 <resources>
     <string name="app_name">App Limit</string>
     <string name="accessibility_description">Detects when an app you have limited comes to the front and closes it when today\'s time runs out. It only watches the apps you limit and reads no screen content.</string>
+
+    <string name="setup_title">Setup</string>
+    <string name="setup_intro">Two permissions and you are done. Nothing leaves the phone: this app has no internet access.</string>
+    <string name="setup_accessibility_title">Accessibility</string>
+    <string name="setup_accessibility_text">Lets the app see which app is in front and close it when its time runs out. It only listens to the apps you limit.</string>
+    <string name="setup_accessibility_button">Open accessibility settings</string>
+    <string name="setup_restricted_text">Switch greyed out or a \"restricted setting\" message? Open App info, tap the ⋮ menu, choose \"Allow restricted settings\", then try again.</string>
+    <string name="setup_restricted_button">Open app info</string>
+    <string name="setup_usage_title">Usage access</string>
+    <string name="setup_usage_text">Shows how long you have used each app today. It only reads the history Android already keeps and costs no battery.</string>
+    <string name="setup_usage_button">Open usage access</string>
+    <string name="setup_done">Done</string>
+
+    <string name="search_apps">Search apps</string>
+    <string name="used_today">Today: %1$s</string>
+    <string name="limit_of">limit %1$s</string>
+    <string name="less_than_minute">&lt; 1 min</string>
+    <string name="daily_limit">Daily limit</string>
+    <string name="remove_limit">Remove limit</string>
+    <string name="save">Save</string>
+    <string name="notifications_text">Allow notifications to get a warning 5 minutes before an app\'s time runs out.</string>
+    <string name="notifications_button">Allow notifications</string>
+
     <string name="warning_channel">Time almost up</string>
     <string name="warning_title">5 minutes left on %1$s</string>
     <string name="warning_text">Today\'s limit runs out soon.</string>

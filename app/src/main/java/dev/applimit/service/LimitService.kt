@@ -65,6 +65,7 @@ class LimitService : AccessibilityService() {
     }
 
     override fun onServiceConnected() {
+        Log.d(TAG, "connected")
         listenToLimitedOnly()
         scope.launch {
             store.limits.collect { limits ->
@@ -91,6 +92,7 @@ class LimitService : AccessibilityService() {
     override fun onInterrupt() = Unit
 
     override fun onDestroy() {
+        Log.d(TAG, "destroyed")
         endSession()
         unregisterScreenReceiver()
         scope.cancel()
