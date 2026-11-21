@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">App Limit</string>
+    <string name="accessibility_description">Detects when an app you have limited comes to the front and closes it when today\'s time runs out. It only watches the apps you limit and reads no screen content.</string>
+    <string name="warning_channel">Time almost up</string>
+    <string name="warning_title">5 minutes left on %1$s</string>
+    <string name="warning_text">Today\'s limit runs out soon.</string>
+    <string name="limit_reached_title">Time limit reached</string>
+    <string name="limit_reached_text">You have used up today\'s time for %1$s.</string>
+    <string name="one_more_minute">One more minute</string>
+    <string name="fifteen_more_minutes">15 more minutes</string>
+    <string name="ignore_today">Ignore limit for today</string>
+    <string name="close">Close</string>
 </resources>

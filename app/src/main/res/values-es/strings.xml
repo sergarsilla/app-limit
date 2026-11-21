@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Límite de apps</string>
+    <string name="accessibility_description">Detecta cuándo pasa a primer plano una app que has limitado y la cierra cuando se agota el tiempo de hoy. Solo vigila las apps que limitas y no lee el contenido de la pantalla.</string>
+    <string name="warning_channel">Tiempo casi agotado</string>
+    <string name="warning_title">Quedan 5 minutos de %1$s</string>
+    <string name="warning_text">El límite de hoy se acaba pronto.</string>
+    <string name="limit_reached_title">Límite alcanzado</string>
+    <string name="limit_reached_text">Has agotado el tiempo de hoy para %1$s.</string>
+    <string name="one_more_minute">Un minuto más</string>
+    <string name="fifteen_more_minutes">15 minutos más</string>
+    <string name="ignore_today">Ignorar por hoy</string>
+    <string name="close">Cerrar</string>
 </resources>
