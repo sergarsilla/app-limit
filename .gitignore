@@ -1,0 +1,16 @@
+.gradle/
+.kotlin/
+build/
+local.properties
+.idea/
+*.iml
+.DS_Store
+captures/
+
+# Personal project brief, not part of the published app
+SPECS.md
+
+# Release signing: real values stay on the machine that builds
+keystore.properties
+*.jks
+*.keystore
