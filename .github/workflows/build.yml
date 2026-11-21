@@ -1,0 +1,34 @@
+name: build
+
+on:
+  # Every branch: work branches get a real Android build before anyone opens a pull request.
+  push:
+  pull_request:
+  # Lets a build be started by hand, which is also the quickest way to tell a broken workflow
+  # apart from an account whose Actions quota is exhausted and silently runs nothing.
+  workflow_dispatch:
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # The Gradle daemon is pinned to JDK 21 in gradle/gradle-daemon-jvm.properties.
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # The release build runs R8, which is where missing keep rules show up; it stays unsigned here.
+      - name: Build the debug and release APKs
+        run: ./gradlew :app:assembleDebug :app:assembleRelease
+
+      - uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        with:
+          name: app-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
