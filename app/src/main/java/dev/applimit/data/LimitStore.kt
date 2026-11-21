@@ -2,23 +2,38 @@ package dev.applimit.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.MultiProcessDataStoreFactory
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.PreferencesFileSerializer
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.io.File
 import java.time.LocalDate
 
-private val Context.dataStore by preferencesDataStore(name = "app_limit")
+/**
+ * The service and the screens run in separate processes so the always-running one never loads the
+ * UI toolkit; this store is shared by both and learns of the other's writes through a file observer.
+ */
+private object SharedStore {
+    @Volatile private var instance: DataStore<Preferences>? = null
 
-fun Context.limitStore() = LimitStore(applicationContext.dataStore)
+    fun get(context: Context): DataStore<Preferences> = instance ?: synchronized(this) {
+        instance ?: MultiProcessDataStoreFactory.create(
+            serializer = PreferencesFileSerializer,
+            produceFile = { File(context.applicationContext.filesDir, "datastore/app_limit.preferences_pb") },
+        ).also { instance = it }
+    }
+}
+
+fun Context.limitStore() = LimitStore(SharedStore.get(this))
 
 /** Today's counters for one app. Entries from an earlier day read as empty, so midnight needs no alarm. */
 data class AppDay(

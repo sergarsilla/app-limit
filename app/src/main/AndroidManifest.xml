@@ -22,9 +22,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppLimit">
 
+        <!-- Screens run in their own process so the always-running service process never loads them. -->
         <activity
-            android:name=".MainActivity"
-            android:exported="true">
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:process=":ui">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -37,6 +39,7 @@
             android:exported="false"
             android:launchMode="singleTask"
             android:noHistory="true"
+            android:process=":ui"
             android:taskAffinity="dev.applimit.limit" />
 
         <service
