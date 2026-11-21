@@ -2,23 +2,40 @@ package dev.applimit.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.MultiProcessDataStoreFactory
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.PreferencesFileSerializer
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import java.io.File
 import java.time.LocalDate
 
-private val Context.dataStore by preferencesDataStore(name = "app_limit")
+/**
+ * The service and the screens run in separate processes so the always-running one never loads the
+ * UI toolkit; this store is shared by both and learns of the other's writes through a file observer.
+ */
+private object SharedStore {
+    @Volatile private var instance: DataStore<Preferences>? = null
 
-fun Context.limitStore() = LimitStore(applicationContext.dataStore)
+    fun get(context: Context): DataStore<Preferences> = instance ?: synchronized(this) {
+        instance ?: MultiProcessDataStoreFactory.create(
+            serializer = PreferencesFileSerializer,
+            produceFile = { File(context.applicationContext.filesDir, "datastore/app_limit.preferences_pb") },
+        ).also { instance = it }
+    }
+}
+
+fun Context.limitStore() = LimitStore(SharedStore.get(this))
 
 /** Today's counters for one app. Entries from an earlier day read as empty, so midnight needs no alarm. */
 data class AppDay(
@@ -67,6 +84,20 @@ class LimitStore internal constructor(private val dataStore: DataStore<Preferenc
 
     suspend fun ignoreToday(pkg: String) = editToday(LocalDate.now()) { it[ignoredKey(pkg)] = true }
 
+    val pinEnabled: Flow<Boolean> = dataStore.data.map { it[PIN] != null }.distinctUntilChanged()
+
+    /** Null turns the PIN off. */
+    suspend fun setPin(pin: String?) {
+        val hashed = pin?.let { withContext(Dispatchers.Default) { Pin.hash(it) } }
+        dataStore.edit { if (hashed == null) it.remove(PIN) else it[PIN] = hashed }
+    }
+
+    /** True when no PIN is set or [pin] matches it. */
+    suspend fun checkPin(pin: String): Boolean {
+        val stored = dataStore.data.first()[PIN] ?: return true
+        return withContext(Dispatchers.Default) { Pin.matches(pin, stored) }
+    }
+
     /** Applies [block] only if [day] is still today, clearing earlier days' counters first. */
     private suspend fun editToday(day: LocalDate, block: (MutablePreferences) -> Unit) {
         dataStore.edit { prefs ->
@@ -83,6 +114,7 @@ class LimitStore internal constructor(private val dataStore: DataStore<Preferenc
 private const val LIMIT_PREFIX = "limit/"
 private const val DAILY_PREFIX = "day/"
 private val DAY = stringPreferencesKey("day")
+private val PIN = stringPreferencesKey("pin")
 
 private fun limitKey(pkg: String) = intPreferencesKey(LIMIT_PREFIX + pkg)
 private fun usedKey(pkg: String) = longPreferencesKey("${DAILY_PREFIX}used/$pkg")

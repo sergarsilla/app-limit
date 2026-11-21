@@ -2,6 +2,29 @@
 <resources>
     <string name="app_name">Límite de apps</string>
     <string name="accessibility_description">Detecta cuándo pasa a primer plano una app que has limitado y la cierra cuando se agota el tiempo de hoy. Solo vigila las apps que limitas y no lee el contenido de la pantalla.</string>
+
+    <string name="setup_title">Configuración</string>
+    <string name="setup_intro">Dos permisos y listo. Nada sale del móvil: esta app no tiene acceso a internet.</string>
+    <string name="setup_accessibility_title">Accesibilidad</string>
+    <string name="setup_accessibility_text">Permite saber qué app está delante y cerrarla cuando se agota su tiempo. Solo atiende a las apps que limites.</string>
+    <string name="setup_accessibility_button">Abrir ajustes de accesibilidad</string>
+    <string name="setup_restricted_text">¿El interruptor sale gris o aparece \"ajuste restringido\"? Abre Info de la app, toca el menú ⋮, elige \"Permitir ajustes restringidos\" y vuelve a intentarlo.</string>
+    <string name="setup_restricted_button">Abrir info de la app</string>
+    <string name="setup_usage_title">Acceso a datos de uso</string>
+    <string name="setup_usage_text">Muestra cuánto has usado hoy cada app. Solo lee el historial que Android ya guarda y no gasta batería.</string>
+    <string name="setup_usage_button">Abrir acceso a datos de uso</string>
+    <string name="setup_done">Hecho</string>
+
+    <string name="search_apps">Buscar apps</string>
+    <string name="used_today">Hoy: %1$s</string>
+    <string name="limit_of">límite %1$s</string>
+    <string name="less_than_minute">&lt; 1 min</string>
+    <string name="daily_limit">Límite diario</string>
+    <string name="remove_limit">Quitar límite</string>
+    <string name="save">Guardar</string>
+    <string name="notifications_text">Permite las notificaciones para recibir un aviso 5 minutos antes de que se agote el tiempo de una app.</string>
+    <string name="notifications_button">Permitir notificaciones</string>
+
     <string name="warning_channel">Tiempo casi agotado</string>
     <string name="warning_title">Quedan 5 minutos de %1$s</string>
     <string name="warning_text">El límite de hoy se acaba pronto.</string>
@@ -11,4 +34,19 @@
     <string name="fifteen_more_minutes">15 minutos más</string>
     <string name="ignore_today">Ignorar por hoy</string>
     <string name="close">Cerrar</string>
+    <string name="settings">Ajustes</string>
+    <string name="pin">PIN</string>
+    <string name="pin_title">PIN</string>
+    <string name="pin_explanation">Opcional. Si está activado, se pide para quitar o subir un límite, para \"15 minutos más\" y para \"Ignorar por hoy\". Está para que saltarse un límite cueste pensarlo un momento.</string>
+    <string name="pin_turn_on">Activar PIN</string>
+    <string name="pin_turn_off">Desactivar PIN</string>
+    <string name="pin_change">Cambiar PIN</string>
+    <string name="pin_new_title">PIN nuevo</string>
+    <string name="pin_rules">De %1$d a %2$d cifras.</string>
+    <string name="pin_repeat">Repite el PIN</string>
+    <string name="pin_mismatch">Los PIN no coinciden</string>
+    <string name="pin_wrong">PIN incorrecto</string>
+    <string name="pin_required">Introduce tu PIN</string>
+    <string name="ok">Aceptar</string>
+    <string name="cancel">Cancelar</string>
 </resources>
