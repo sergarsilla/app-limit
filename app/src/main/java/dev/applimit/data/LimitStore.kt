@@ -11,10 +11,12 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.time.LocalDate
 
@@ -82,6 +84,20 @@ class LimitStore internal constructor(private val dataStore: DataStore<Preferenc
 
     suspend fun ignoreToday(pkg: String) = editToday(LocalDate.now()) { it[ignoredKey(pkg)] = true }
 
+    val pinEnabled: Flow<Boolean> = dataStore.data.map { it[PIN] != null }.distinctUntilChanged()
+
+    /** Null turns the PIN off. */
+    suspend fun setPin(pin: String?) {
+        val hashed = pin?.let { withContext(Dispatchers.Default) { Pin.hash(it) } }
+        dataStore.edit { if (hashed == null) it.remove(PIN) else it[PIN] = hashed }
+    }
+
+    /** True when no PIN is set or [pin] matches it. */
+    suspend fun checkPin(pin: String): Boolean {
+        val stored = dataStore.data.first()[PIN] ?: return true
+        return withContext(Dispatchers.Default) { Pin.matches(pin, stored) }
+    }
+
     /** Applies [block] only if [day] is still today, clearing earlier days' counters first. */
     private suspend fun editToday(day: LocalDate, block: (MutablePreferences) -> Unit) {
         dataStore.edit { prefs ->
@@ -98,6 +114,7 @@ class LimitStore internal constructor(private val dataStore: DataStore<Preferenc
 private const val LIMIT_PREFIX = "limit/"
 private const val DAILY_PREFIX = "day/"
 private val DAY = stringPreferencesKey("day")
+private val PIN = stringPreferencesKey("pin")
 
 private fun limitKey(pkg: String) = intPreferencesKey(LIMIT_PREFIX + pkg)
 private fun usedKey(pkg: String) = longPreferencesKey("${DAILY_PREFIX}used/$pkg")

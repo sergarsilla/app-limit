@@ -34,11 +34,15 @@ import androidx.lifecycle.lifecycleScope
 import dev.applimit.R
 import dev.applimit.data.appLabel
 import dev.applimit.data.limitStore
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class LimitReachedActivity : ComponentActivity() {
 
     private var pkg by mutableStateOf("")
+
+    // "15 more minutes" and "Ignore for today" wait here for the PIN when one is set.
+    private var pendingGrant by mutableStateOf<(suspend () -> Unit)?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,10 +54,19 @@ class LimitReachedActivity : ComponentActivity() {
                     label = appLabel(pkg),
                     pkg = pkg,
                     onOneMore = { grant { limitStore().grantExtra(pkg, MINUTE, oneMore = true) } },
-                    onFifteenMore = { grant { limitStore().grantExtra(pkg, 15 * MINUTE) } },
-                    onIgnoreToday = { grant { limitStore().ignoreToday(pkg) } },
+                    onFifteenMore = { guarded { limitStore().grantExtra(pkg, 15 * MINUTE) } },
+                    onIgnoreToday = { guarded { limitStore().ignoreToday(pkg) } },
                     onClose = ::finish,
                 )
+                pendingGrant?.let { save ->
+                    PinDialog(
+                        title = stringResource(R.string.pin_required),
+                        onSubmit = { pin ->
+                            limitStore().checkPin(pin).also { ok -> if (ok) grant(save) }
+                        },
+                        onDismiss = { pendingGrant = null },
+                    )
+                }
             }
         }
     }
@@ -61,6 +74,12 @@ class LimitReachedActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         pkg = intent.getStringExtra(EXTRA_PACKAGE).orEmpty()
+    }
+
+    private fun guarded(save: suspend () -> Unit) {
+        lifecycleScope.launch {
+            if (limitStore().pinEnabled.first()) pendingGrant = save else grant(save)
+        }
     }
 
     /** The grant is stored before the app is reopened, so the service sees it on arrival. */

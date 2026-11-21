@@ -28,6 +28,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -45,8 +46,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -69,10 +72,13 @@ private const val DEFAULT_LIMIT = 30
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppListScreen(resumes: Int) {
+fun AppListScreen(resumes: Int, onOpenSettings: () -> Unit) {
     val context = LocalContext.current
     val store = remember { context.limitStore() }
     val limits by store.limits.collectAsState(initial = emptyMap())
+    val pinEnabled by store.pinEnabled.collectAsState(initial = false)
+    // A change that loosens a limit waits here for the PIN.
+    var pendingChange by remember { mutableStateOf<Pair<InstalledApp, Int?>?>(null) }
     val apps by produceState(emptyList<InstalledApp>()) {
         value = withContext(Dispatchers.Default) { context.launcherApps() }
     }
@@ -92,7 +98,14 @@ fun AppListScreen(resumes: Int) {
             )
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) }) { padding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.app_name)) },
+                actions = { TextButton(onClick = onOpenSettings) { Text(stringResource(R.string.settings)) } },
+            )
+        },
+    ) { padding ->
         LazyColumn(contentPadding = padding, modifier = Modifier.fillMaxSize()) {
             item { NotificationBanner(resumes) }
             item {
@@ -114,11 +127,38 @@ fun AppListScreen(resumes: Int) {
         LimitSheet(
             app = app,
             current = limits[app.pkg],
-            onSave = { minutes -> store.setLimit(app.pkg, minutes) },
+            onSave = { minutes ->
+                if (pinEnabled && loosens(limits[app.pkg], minutes)) {
+                    pendingChange = app to minutes
+                    false
+                } else {
+                    store.setLimit(app.pkg, minutes)
+                    true
+                }
+            },
             onDismiss = { editing = null },
         )
     }
+
+    pendingChange?.let { (app, minutes) ->
+        PinDialog(
+            title = stringResource(R.string.pin_required),
+            onSubmit = { pin ->
+                store.checkPin(pin).also { ok ->
+                    if (ok) {
+                        store.setLimit(app.pkg, minutes)
+                        pendingChange = null
+                        editing = null
+                    }
+                }
+            },
+            onDismiss = { pendingChange = null },
+        )
+    }
 }
+
+/** Removing or raising a limit is what the PIN guards; tightening one never needs it. */
+private fun loosens(current: Int?, new: Int?): Boolean = current != null && (new == null || new > current)
 
 @Composable
 private fun AppRow(
@@ -185,15 +225,29 @@ private fun NotificationBanner(resumes: Int) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LimitSheet(app: InstalledApp, current: Int?, onSave: suspend (Int?) -> Unit, onDismiss: () -> Unit) {
+private fun LimitSheet(
+    app: InstalledApp,
+    current: Int?,
+    onSave: suspend (Int?) -> Boolean,
+    onDismiss: () -> Unit,
+) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     var minutes by remember { mutableFloatStateOf((current ?: DEFAULT_LIMIT).toFloat()) }
     val lessThanMinute = stringResource(R.string.less_than_minute)
+    val haptics = LocalHapticFeedback.current
+
+    // One tick per 5-minute step, from the slider or the buttons.
+    fun change(value: Float) {
+        val clamped = value.coerceIn(MIN_LIMIT.toFloat(), MAX_LIMIT.toFloat())
+        if (clamped.roundToInt() != minutes.roundToInt()) haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+        minutes = clamped
+    }
 
     fun saveAndClose(value: Int?) {
         scope.launch {
-            onSave(value)
+            if (!onSave(value)) return@launch
+            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
             sheetState.hide()
             onDismiss()
         }
@@ -212,7 +266,7 @@ private fun LimitSheet(app: InstalledApp, current: Int?, onSave: suspend (Int?) 
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 FilledTonalButton(
-                    onClick = { minutes = (minutes - LIMIT_STEP).coerceAtLeast(MIN_LIMIT.toFloat()) },
+                    onClick = { change(minutes - LIMIT_STEP) },
                     enabled = minutes > MIN_LIMIT,
                 ) { Text("−$LIMIT_STEP") }
                 Text(
@@ -220,13 +274,13 @@ private fun LimitSheet(app: InstalledApp, current: Int?, onSave: suspend (Int?) 
                     style = MaterialTheme.typography.displaySmall,
                 )
                 FilledTonalButton(
-                    onClick = { minutes = (minutes + LIMIT_STEP).coerceAtMost(MAX_LIMIT.toFloat()) },
+                    onClick = { change(minutes + LIMIT_STEP) },
                     enabled = minutes < MAX_LIMIT,
                 ) { Text("+$LIMIT_STEP") }
             }
             Slider(
                 value = minutes,
-                onValueChange = { minutes = it },
+                onValueChange = ::change,
                 valueRange = MIN_LIMIT.toFloat()..MAX_LIMIT.toFloat(),
                 steps = (MAX_LIMIT - MIN_LIMIT) / LIMIT_STEP - 1,
             )
