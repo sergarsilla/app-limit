@@ -34,4 +34,19 @@
     <string name="fifteen_more_minutes">15 more minutes</string>
     <string name="ignore_today">Ignore limit for today</string>
     <string name="close">Close</string>
+    <string name="settings">Settings</string>
+    <string name="pin">PIN</string>
+    <string name="pin_title">PIN</string>
+    <string name="pin_explanation">Optional. When on, removing or raising a limit, \"15 more minutes\" and \"Ignore limit for today\" ask for it. It is there to make skipping a limit take a moment\'s thought.</string>
+    <string name="pin_turn_on">Turn on PIN</string>
+    <string name="pin_turn_off">Turn off PIN</string>
+    <string name="pin_change">Change PIN</string>
+    <string name="pin_new_title">New PIN</string>
+    <string name="pin_rules">%1$d to %2$d digits.</string>
+    <string name="pin_repeat">Repeat PIN</string>
+    <string name="pin_mismatch">The PINs do not match</string>
+    <string name="pin_wrong">Wrong PIN</string>
+    <string name="pin_required">Enter your PIN</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
 </resources>

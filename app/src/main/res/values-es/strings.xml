@@ -34,4 +34,19 @@
     <string name="fifteen_more_minutes">15 minutos más</string>
     <string name="ignore_today">Ignorar por hoy</string>
     <string name="close">Cerrar</string>
+    <string name="settings">Ajustes</string>
+    <string name="pin">PIN</string>
+    <string name="pin_title">PIN</string>
+    <string name="pin_explanation">Opcional. Si está activado, se pide para quitar o subir un límite, para \"15 minutos más\" y para \"Ignorar por hoy\". Está para que saltarse un límite cueste pensarlo un momento.</string>
+    <string name="pin_turn_on">Activar PIN</string>
+    <string name="pin_turn_off">Desactivar PIN</string>
+    <string name="pin_change">Cambiar PIN</string>
+    <string name="pin_new_title">PIN nuevo</string>
+    <string name="pin_rules">De %1$d a %2$d cifras.</string>
+    <string name="pin_repeat">Repite el PIN</string>
+    <string name="pin_mismatch">Los PIN no coinciden</string>
+    <string name="pin_wrong">PIN incorrecto</string>
+    <string name="pin_required">Introduce tu PIN</string>
+    <string name="ok">Aceptar</string>
+    <string name="cancel">Cancelar</string>
 </resources>

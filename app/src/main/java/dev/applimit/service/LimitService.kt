@@ -60,6 +60,8 @@ class LimitService : AccessibilityService() {
                 Intent.ACTION_USER_PRESENT -> onScreenUsable()
                 Intent.ACTION_SCREEN_ON ->
                     if (!getSystemService(KeyguardManager::class.java).isKeyguardLocked) onScreenUsable()
+                // The midnight restart was scheduled on the old clock.
+                Intent.ACTION_TIMEZONE_CHANGED, Intent.ACTION_TIME_CHANGED -> restartSession()
             }
         }
     }
@@ -154,11 +156,14 @@ class LimitService : AccessibilityService() {
     private fun scheduleMidnight() {
         val now = ZonedDateTime.now(ZoneId.systemDefault())
         val midnight = now.toLocalDate().plusDays(1).atStartOfDay(now.zone)
-        handler.postDelayed({
-            val pkg = session?.pkg ?: return@postDelayed
-            endSession()
-            begin(pkg)
-        }, Duration.between(now, midnight).toMillis() + MIDNIGHT_MARGIN)
+        handler.postDelayed(::restartSession, Duration.between(now, midnight).toMillis() + MIDNIGHT_MARGIN)
+    }
+
+    private fun restartSession() {
+        val pkg = session?.pkg ?: return
+        Log.d(TAG, "restart $pkg")
+        endSession()
+        begin(pkg)
     }
 
     private fun onScreenOff() {
@@ -207,6 +212,8 @@ class LimitService : AccessibilityService() {
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_USER_PRESENT)
+            addAction(Intent.ACTION_TIMEZONE_CHANGED)
+            addAction(Intent.ACTION_TIME_CHANGED)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(screenReceiver, filter, RECEIVER_NOT_EXPORTED)

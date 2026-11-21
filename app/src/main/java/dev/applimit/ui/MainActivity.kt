@@ -7,7 +7,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import dev.applimit.data.hasUsageAccess
@@ -35,8 +37,9 @@ private fun App(resumes: Int) {
     val context = LocalContext.current
     val serviceEnabled = remember(resumes) { context.isServiceEnabled() }
     val usageAccess = remember(resumes) { context.hasUsageAccess() }
+    var settings by rememberSaveable { mutableStateOf(false) }
     if (serviceEnabled && usageAccess) {
-        AppListScreen(resumes)
+        if (settings) SettingsScreen(onBack = { settings = false }) else AppListScreen(resumes) { settings = true }
     } else {
         SetupScreen(serviceEnabled, usageAccess)
     }
